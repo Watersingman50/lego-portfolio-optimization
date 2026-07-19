@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jeffrey Lee">
+<meta name="dcterms.date" content="2026-07-19">
+
+<title>Building an Optimal LEGO Portfolio Under a Budget Constraint</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="report_files/libs/clipboard/clipboard.min.js"></script>
+<script src="report_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="report_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="report_files/libs/quarto-html/popper.min.js"></script>
+<script src="report_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="report_files/libs/quarto-html/anchor.min.js"></script>
+<link href="report_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="report_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="report_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="report_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="report_files/libs/bootstrap/bootstrap-67270d1595a62d14f123c043d4fb2f18.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#the-verdict" id="toc-the-verdict" class="nav-link active" data-scroll-target="#the-verdict">The verdict</a></li>
+  <li><a href="#data-and-method" id="toc-data-and-method" class="nav-link" data-scroll-target="#data-and-method">Data and method</a></li>
+  <li><a href="#the-price-index-nominal-vs.-real" id="toc-the-price-index-nominal-vs.-real" class="nav-link" data-scroll-target="#the-price-index-nominal-vs.-real">The price index: nominal vs.&nbsp;real</a></li>
+  <li><a href="#do-lego-theme-groups-diversify-each-other" id="toc-do-lego-theme-groups-diversify-each-other" class="nav-link" data-scroll-target="#do-lego-theme-groups-diversify-each-other">Do LEGO theme groups diversify each other?</a></li>
+  <li><a href="#risk-and-return-by-theme" id="toc-risk-and-return-by-theme" class="nav-link" data-scroll-target="#risk-and-return-by-theme">Risk and return by theme</a></li>
+  <li><a href="#the-efficient-frontier-what-indivisibility-costs-you" id="toc-the-efficient-frontier-what-indivisibility-costs-you" class="nav-link" data-scroll-target="#the-efficient-frontier-what-indivisibility-costs-you">The efficient frontier: what indivisibility costs you</a></li>
+  <li><a href="#recommended-portfolios-by-budget" id="toc-recommended-portfolios-by-budget" class="nav-link" data-scroll-target="#recommended-portfolios-by-budget">Recommended portfolios by budget</a></li>
+  <li><a href="#honest-limitations" id="toc-honest-limitations" class="nav-link" data-scroll-target="#honest-limitations">Honest limitations</a></li>
+  <li><a href="#data-and-code" id="toc-data-and-code" class="nav-link" data-scroll-target="#data-and-code">Data and code</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Building an Optimal LEGO Portfolio Under a Budget Constraint</h1>
+<p class="subtitle lead">How much does indivisibility cost a collectibles investor?</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jeffrey Lee </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">July 19, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="the-verdict" class="level2">
+<h2 class="anchored" data-anchor-id="the-verdict">The verdict</h2>
+<p>Given a fixed budget, this project asks: what does an optimal LEGO aftermarket portfolio actually look like, and how much of the classic portfolio-theory toolkit survives contact with an illiquid, indivisible, thin-data collectible market?</p>
+<p>Three findings, in order of importance:</p>
+<ol type="1">
+<li><strong>Nominal price stability masked a real decline.</strong> LEGO’s złoty aftermarket price rose steadily from 2018 to 2023, but after adjusting for Polish inflation, real purchasing-power returns peaked in late 2021 and ended below the 2018 starting point by June 2023.</li>
+<li><strong>LEGO theme groups do not diversify each other as well as expected.</strong> Cross-theme correlations of 0.73 to 0.95 contradict the naive assumption that a “collectibles” asset class is internally diversified. Most themes move together, likely riding the same shared macro and market conditions.</li>
+<li><strong>A naive return-maximizing optimizer, ignoring risk, concentrates 100% of any budget into a single theme (Technical), at $2K, $10K, and $50K alike.</strong> A properly risk-adjusted mean-variance frontier, using the real covariance structure, achieves a lower-volatility portfolio than any single theme held alone, by diversifying across four themes instead of one.</li>
+</ol>
+<p>The honest headline: naive optimization on this asset class is actively misleading. Rigor changes the answer.</p>
+</section>
+<section id="data-and-method" class="level2">
+<h2 class="anchored" data-anchor-id="data-and-method">Data and method</h2>
+<p>The analysis uses 150971 cleaned set-month price observations across 7012 LEGO sets, June 2018 through June 2023, sourced from an open academic dataset (Oczkoś, Podgórski, Szczepańska &amp; Boiński, 2024, <em>Data in Brief</em> 52:110056, CC BY 4.0), combining aftermarket transaction data (promoklocki.pl) with Brickset set characteristics.</p>
+<p>A matched-set hedonic regression (R’s <code>fixest</code>) estimates monthly price indices while controlling for pieces, minifigure count, and theme, absorbing a separate fixed effect per month to avoid composition-drift bias from an unbalanced panel (793 sets tracked in June 2018, rising to 2,558 by mid-2021, falling to 974 by June 2023). Prices are deflated using Poland’s monthly CPI (FRED series POLCPALTT01IXNBM). Portfolio construction compares a mixed-integer program (<code>ompr</code>/GLPK) against a continuous quadratic mean-variance frontier (<code>CVXR</code>), both using the same underlying covariance structure.</p>
+</section>
+<section id="the-price-index-nominal-vs.-real" class="level2">
+<h2 class="anchored" data-anchor-id="the-price-index-nominal-vs.-real">The price index: nominal vs.&nbsp;real</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/index-chart-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>By June 2023, the nominal index stood at 135.7 while the real, inflation-adjusted index had fallen to 95.4, below its June 2018 starting value. The gap between the two lines is entirely attributable to Polish inflation, which accelerated sharply through 2022.</p>
+</section>
+<section id="do-lego-theme-groups-diversify-each-other" class="level2">
+<h2 class="anchored" data-anchor-id="do-lego-theme-groups-diversify-each-other">Do LEGO theme groups diversify each other?</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/correlation-heatmap-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Every pairwise correlation between the seven major theme groups falls between 0.73 and 0.95, all strongly positive. This contradicts the intra-asset-class diversification thesis common in the collectibles-as-investment literature (e.g., Masset &amp; Weisskopf, 2010, on wine): rather than moving independently, LEGO theme groups appear to share substantial common variation, likely driven by shared macroeconomic conditions and overall market sentiment absorbed into the same monthly fixed effects.</p>
+</section>
+<section id="risk-and-return-by-theme" class="level2">
+<h2 class="anchored" data-anchor-id="risk-and-return-by-theme">Risk and return by theme</h2>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Theme</th>
+<th style="text-align: left;">Mean monthly return</th>
+<th style="text-align: left;">Monthly volatility</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">1.42%</td>
+<td style="text-align: left;">13.8%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Model making</td>
+<td style="text-align: left;">0.86%</td>
+<td style="text-align: left;">9.8%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Miscellaneous</td>
+<td style="text-align: left;">0.83%</td>
+<td style="text-align: left;">8.3%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Action/Adventure</td>
+<td style="text-align: left;">0.78%</td>
+<td style="text-align: left;">8.2%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Licensed</td>
+<td style="text-align: left;">0.68%</td>
+<td style="text-align: left;">6.5%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Pre-school</td>
+<td style="text-align: left;">0.61%</td>
+<td style="text-align: left;">7.9%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Modern day</td>
+<td style="text-align: left;">0.53%</td>
+<td style="text-align: left;">8.4%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Technical is both the highest-return and highest-risk theme; Licensed is the steadiest. This spread is what makes the diversification question meaningful, and what the correlation matrix above shows isn’t being exploited by simple allocation rules.</p>
+</section>
+<section id="the-efficient-frontier-what-indivisibility-costs-you" class="level2">
+<h2 class="anchored" data-anchor-id="the-efficient-frontier-what-indivisibility-costs-you">The efficient frontier: what indivisibility costs you</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="report_files/figure-html/frontier-chart-1.png" class="img-fluid figure-img" width="768"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The naive integer-constrained optimizer, used at all three budget levels, sits at the extreme right edge of the frontier: full Technical concentration, 1.42% return at 13.8% risk. The frontier shows the same 0.0142 return is only achievable this way, but far better risk/return tradeoffs exist elsewhere on the curve. At the frontier’s minimum-risk point, achievable volatility drops to roughly 5.9%, meaningfully below Technical’s 13.8% and below every other single theme’s own volatility.</p>
+</section>
+<section id="recommended-portfolios-by-budget" class="level2">
+<h2 class="anchored" data-anchor-id="recommended-portfolios-by-budget">Recommended portfolios by budget</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">$2,000</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">$10,000</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">$50,000</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Set</th>
+<th style="text-align: left;">Theme</th>
+<th style="text-align: left;">Price</th>
+<th style="text-align: left;">Expected monthly return</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Car</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$100</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Mack Anthem</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$1,900</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Set</th>
+<th style="text-align: left;">Theme</th>
+<th style="text-align: left;">Price</th>
+<th style="text-align: left;">Expected monthly return</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Mobile Crane MK II</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,499</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Rough Terrain Crane</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$52</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Combine Harvester</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,899</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Tow Truck</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$2,550</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 37%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 34%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Set</th>
+<th style="text-align: left;">Theme</th>
+<th style="text-align: left;">Price</th>
+<th style="text-align: left;">Expected monthly return</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Mindstorms EV3</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,200.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Volvo Wheel Loader</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$18.50</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Helicopter</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$15.28</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Mobile Crane MK II</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,499.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Twin-rotor Helicopter</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$110.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Porsche 911 GT3 RS</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$6,498.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">6x6 All Terrain Tow Truck</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$1,999.90</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Liebherr R 9800</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,499.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Bell-Boeing V-22 Osprey</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$7,999.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Race Plane</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$33.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Dump Truck</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$33.33</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Combine Harvester</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,899.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Motorized Bulldozer</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,399.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Back-Hoe</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$2,999.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Power Puller</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$4,499.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">4x4 Off-Roader</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$3,699.00</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Air Tech Claw Rig</td>
+<td style="text-align: left;">Technical</td>
+<td style="text-align: left;">$4,599.99</td>
+<td style="text-align: left;">1.42%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>These are the outputs of the naive return-maximizing integer program, shown deliberately unmodified: at every budget tested, the optimizer concentrates entirely in Technical sets. This is not a data artifact. It is the mathematically correct behavior of a linear objective with a single budget constraint, sometimes called the “knapsack” property: without a risk term, the optimal solution is always to fill the budget with the single best per-dollar asset. A tested linear risk penalty (return minus a volatility term) failed to change this outcome at any reasonable penalty weight, confirming that true diversification requires the quadratic covariance term used in the frontier above, not a simple per-asset penalty.</p>
+</section>
+<section id="honest-limitations" class="level2">
+<h2 class="anchored" data-anchor-id="honest-limitations">Honest limitations</h2>
+<ul>
+<li><strong>Illiquidity correction was investigated, not applied.</strong> The standard Getmansky-Lo-Makarov unsmoothing correction assumes positive return autocorrelation from appraisal-style smoothing. This data instead showed negative autocorrelation (-0.09 to -0.35 across themes), consistent with month-to-month regression estimation noise from thin trading in some theme-months, rather than classic illiquidity smoothing. Applying the standard correction would have been methodologically inappropriate; raw volatility is reported instead, with this caveat.</li>
+<li><strong>Individual sets inherit their theme’s expected return</strong>, since 61 months of data cannot support reliable per-set return estimates for 6,072 individual sets. This is a real approximation, not a limitation unique to this analysis. It mirrors how thin-trading asset classes are typically handled in practice.</li>
+<li><strong>Prices are the most recently observed price per set (up to June 2023)</strong>, not live market prices. This is historical, not real-time, portfolio guidance.</li>
+<li><strong>The frontier is built at the theme level (7 assets)</strong>, not the individual-set level (6,072 assets), because a reliable 6,072x6,072 covariance matrix is not estimable from 61 months of data. The integer-constrained portfolios operate at the set level; the frontier operates at the theme level. This is why the two are compared rather than unified into a single unconstrained-vs-constrained model.</li>
+<li><strong>Correlations are measured on regression-smoothed indices</strong>, which may understate true month-to-month volatility even where the GLM correction doesn’t cleanly apply. This is a genuine, acknowledged tension in this analysis.</li>
+</ul>
+</section>
+<section id="data-and-code" class="level2">
+<h2 class="anchored" data-anchor-id="data-and-code">Data and code</h2>
+<p>Full analysis code, raw data, and reproducibility instructions (via <code>renv</code>) are available at <a href="https://github.com/Watersingman50/lego-portfolio-optimization">github.com/Watersingman50/lego-portfolio-optimization</a>.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
