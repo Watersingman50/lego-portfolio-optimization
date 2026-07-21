@@ -99,3 +99,34 @@ cat("Integer portfolios: $2K =", nrow(portfolio_2k), "sets, $10K =", nrow(portfo
     "sets, $50K =", nrow(portfolio_50k), "sets (all 100% Technical)\n")
 cat("Frontier: risk ranges from", round(min(frontier$achieved_risk), 3),
     "to", round(max(frontier$achieved_risk), 3), "\n")
+# --- Turn the minimum-risk weights into an actual, buyable portfolio ---
+min_var_weights <- tibble(
+  themeGroup = c("Licensed", "Miscellaneous", "Pre-school", "Action/Adventure"),
+  weight = c(0.462, 0.209, 0.201, 0.129)
+)
+
+allocate_min_var_portfolio <- function(total_budget) {
+  map_dfr(1:nrow(min_var_weights), function(i) {
+    theme <- min_var_weights$themeGroup[i]
+    sub_budget <- total_budget * min_var_weights$weight[i]
+    theme_sets <- sets |> filter(themeGroup == theme)
+    n <- nrow(theme_sets)
+    
+    model <- MIPModel() |>
+      add_variable(buy[j], j = 1:n, type = "binary") |>
+      set_objective(sum_expr(theme_sets$Price[j] * buy[j], j = 1:n), sense = "max") |>
+      add_constraint(sum_expr(theme_sets$Price[j] * buy[j], j = 1:n) <= sub_budget)
+    
+    result <- solve_model(model, with_ROI(solver = "glpk"))
+    solution <- get_solution(result, buy[j]) |> filter(value == 1)
+    theme_sets[solution$j, ] |> select(name, themeGroup, Price, mean_return)
+  })
+}
+
+portfolio_min_var_10k <- allocate_min_var_portfolio(10000)
+saveRDS(portfolio_min_var_10k, "data/processed/portfolio_min_var_10k.rds")
+portfolio_min_var_2k  <- allocate_min_var_portfolio(2000)
+portfolio_min_var_50k <- allocate_min_var_portfolio(50000)
+
+saveRDS(portfolio_min_var_2k,  "data/processed/portfolio_min_var_2k.rds")
+saveRDS(portfolio_min_var_50k, "data/processed/portfolio_min_var_50k.rds")
