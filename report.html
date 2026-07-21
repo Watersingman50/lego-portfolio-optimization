@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jeffrey Lee">
-<meta name="dcterms.date" content="2026-07-19">
+<meta name="dcterms.date" content="2026-07-20">
 
 <title>Building an Optimal LEGO Portfolio Under a Budget Constraint</title>
 <style>
@@ -24,6 +24,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -56,10 +91,12 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#the-price-index-nominal-vs.-real" id="toc-the-price-index-nominal-vs.-real" class="nav-link" data-scroll-target="#the-price-index-nominal-vs.-real">The price index: nominal vs.&nbsp;real</a></li>
   <li><a href="#do-lego-theme-groups-diversify-each-other" id="toc-do-lego-theme-groups-diversify-each-other" class="nav-link" data-scroll-target="#do-lego-theme-groups-diversify-each-other">Do LEGO theme groups diversify each other?</a></li>
   <li><a href="#risk-and-return-by-theme" id="toc-risk-and-return-by-theme" class="nav-link" data-scroll-target="#risk-and-return-by-theme">Risk and return by theme</a></li>
-  <li><a href="#the-efficient-frontier-what-indivisibility-costs-you" id="toc-the-efficient-frontier-what-indivisibility-costs-you" class="nav-link" data-scroll-target="#the-efficient-frontier-what-indivisibility-costs-you">The efficient frontier: what indivisibility costs you</a></li>
+  <li><a href="#the-efficient-frontier-what-indivisibility-costs-you" id="toc-the-efficient-frontier-what-indivisibility-costs-you" class="nav-link" data-scroll-target="#the-efficient-frontier-what-indivisibility-costs-you">The efficient frontier: what indivisibility costs you</a>
+  <ul class="collapse">
+  <li><a href="#the-minimum-risk-diversified-portfolio" id="toc-the-minimum-risk-diversified-portfolio" class="nav-link" data-scroll-target="#the-minimum-risk-diversified-portfolio">The minimum-risk diversified portfolio</a></li>
+  </ul></li>
   <li><a href="#recommended-portfolios-by-budget" id="toc-recommended-portfolios-by-budget" class="nav-link" data-scroll-target="#recommended-portfolios-by-budget">Recommended portfolios by budget</a></li>
   <li><a href="#honest-limitations" id="toc-honest-limitations" class="nav-link" data-scroll-target="#honest-limitations">Honest limitations</a></li>
-  <li><a href="#data-and-code" id="toc-data-and-code" class="nav-link" data-scroll-target="#data-and-code">Data and code</a></li>
   </ul>
 </nav>
 </div>
@@ -85,7 +122,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">July 19, 2026</p>
+      <p class="date">July 20, 2026</p>
     </div>
   </div>
   
@@ -97,6 +134,58 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.2.1     ✔ readr     2.2.0
+✔ forcats   1.0.1     ✔ stringr   1.6.0
+✔ ggplot2   4.0.3     ✔ tibble    3.3.1
+✔ lubridate 1.9.5     ✔ tidyr     1.3.2
+✔ purrr     1.2.2     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'scales'
+
+The following object is masked from 'package:purrr':
+
+    discard
+
+The following object is masked from 'package:readr':
+
+    col_factor</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>overall_index <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/overall_index.rds"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>sub_indices <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/sub_indices.rds"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>correlation_matrix <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/correlation_matrix.rds"</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>returns <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/returns.rds"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>frontier <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/frontier.rds"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>portfolio_2k <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/portfolio_2k.rds"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>portfolio_10k <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/portfolio_10k.rds"</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>portfolio_50k <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">"data/processed/portfolio_50k.rds"</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>risk_summary <span class="ot">&lt;-</span> returns <span class="sc">|&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(themeGroup) <span class="sc">|&gt;</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_return =</span> <span class="fu">mean</span>(return, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">volatility =</span> <span class="fu">sd</span>(return, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
 <section id="the-verdict" class="level2">
 <h2 class="anchored" data-anchor-id="the-verdict">The verdict</h2>
 <p>Given a fixed budget, this project asks: what does an optimal LEGO aftermarket portfolio actually look like, and how much of the classic portfolio-theory toolkit survives contact with an illiquid, indivisible, thin-data collectible market?</p>
@@ -104,7 +193,7 @@ ul.task-list li input[type="checkbox"] {
 <ol type="1">
 <li><strong>Nominal price stability masked a real decline.</strong> LEGO’s złoty aftermarket price rose steadily from 2018 to 2023, but after adjusting for Polish inflation, real purchasing-power returns peaked in late 2021 and ended below the 2018 starting point by June 2023.</li>
 <li><strong>LEGO theme groups do not diversify each other as well as expected.</strong> Cross-theme correlations of 0.73 to 0.95 contradict the naive assumption that a “collectibles” asset class is internally diversified. Most themes move together, likely riding the same shared macro and market conditions.</li>
-<li><strong>A naive return-maximizing optimizer, ignoring risk, concentrates 100% of any budget into a single theme (Technical), at $2K, $10K, and $50K alike.</strong> A properly risk-adjusted mean-variance frontier, using the real covariance structure, achieves a lower-volatility portfolio than any single theme held alone, by diversifying across four themes instead of one.</li>
+<li><strong>A naive return-maximizing optimizer, ignoring risk, concentrates 100% of any budget into a single theme (Technical), at $2K, $10K, and $50K alike.</strong> A properly risk-adjusted mean-variance frontier finds a genuinely different answer: at the minimum-risk point, a portfolio of roughly 46% Licensed, 21% Miscellaneous, 20% Pre-school, and 13% Action/Adventure achieves 5.8% monthly volatility, lower than any single theme held alone, including Licensed on its own (6.5%), while giving zero allocation to Technical.</li>
 </ol>
 <p>The honest headline: naive optimization on this asset class is actively misleading. Rigor changes the answer.</p>
 </section>
@@ -116,10 +205,27 @@ ul.task-list li input[type="checkbox"] {
 <section id="the-price-index-nominal-vs.-real" class="level2">
 <h2 class="anchored" data-anchor-id="the-price-index-nominal-vs.-real">The price index: nominal vs.&nbsp;real</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>overall_index <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date =</span> <span class="fu">as.Date</span>(<span class="fu">paste0</span>(Date, <span class="st">"-01"</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Date)) <span class="sc">+</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> nominal_index, <span class="at">color =</span> <span class="st">"Nominal"</span>), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> real_index, <span class="at">color =</span> <span class="st">"Real (CPI-deflated)"</span>), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">100</span>, <span class="at">linetype =</span> <span class="st">"dotted"</span>, <span class="at">color =</span> <span class="st">"gray50"</span>) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Nominal"</span> <span class="ot">=</span> <span class="st">"#2a78d6"</span>, <span class="st">"Real (CPI-deflated)"</span> <span class="ot">=</span> <span class="st">"#008300"</span>)) <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"LEGO aftermarket index: nominal price growth outpaced real returns"</span>,</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"June 2018 = 100. Real index deflated by Polish CPI."</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Index (June 2018 = 100)"</span>, <span class="at">color =</span> <span class="cn">NULL</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/index-chart-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="report_files/figure-html/index-chart-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -129,10 +235,25 @@ ul.task-list li input[type="checkbox"] {
 <section id="do-lego-theme-groups-diversify-each-other" class="level2">
 <h2 class="anchored" data-anchor-id="do-lego-theme-groups-diversify-each-other">Do LEGO theme groups diversify each other?</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">&lt;-</span> correlation_matrix</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>cm_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">as.table</span>(cm))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(cm_df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"theme1"</span>, <span class="st">"theme2"</span>, <span class="st">"correlation"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cm_df, <span class="fu">aes</span>(<span class="at">x =</span> theme1, <span class="at">y =</span> theme2, <span class="at">fill =</span> correlation)) <span class="sc">+</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(correlation, <span class="dv">2</span>)), <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient2</span>(<span class="at">low =</span> <span class="st">"#2a78d6"</span>, <span class="at">mid =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"#e34948"</span>, <span class="at">midpoint =</span> <span class="fl">0.5</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Cross-theme correlation: LEGO themes move together more than expected"</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="cn">NULL</span>, <span class="at">fill =</span> <span class="st">"Correlation"</span>) <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">11</span>) <span class="sc">+</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>), <span class="at">legend.position =</span> <span class="st">"right"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/correlation-heatmap-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="report_files/figure-html/correlation-heatmap-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -142,6 +263,16 @@ ul.task-list li input[type="checkbox"] {
 <section id="risk-and-return-by-theme" class="level2">
 <h2 class="anchored" data-anchor-id="risk-and-return-by-theme">Risk and return by theme</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>risk_summary <span class="sc">|&gt;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(mean_return)) <span class="sc">|&gt;</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_return =</span> <span class="fu">percent</span>(mean_return, <span class="at">accuracy =</span> <span class="fl">0.01</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">volatility =</span> <span class="fu">percent</span>(volatility, <span class="at">accuracy =</span> <span class="fl">0.1</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Theme"</span>, <span class="st">"Mean monthly return"</span>, <span class="st">"Monthly volatility"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
@@ -196,15 +327,82 @@ ul.task-list li input[type="checkbox"] {
 <section id="the-efficient-frontier-what-indivisibility-costs-you" class="level2">
 <h2 class="anchored" data-anchor-id="the-efficient-frontier-what-indivisibility-costs-you">The efficient frontier: what indivisibility costs you</h2>
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(frontier, <span class="fu">aes</span>(<span class="at">x =</span> achieved_risk, <span class="at">y =</span> target_return)) <span class="sc">+</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"#2a78d6"</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">color =</span> <span class="st">"#2a78d6"</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">risk =</span> <span class="fl">0.138</span>, <span class="at">ret =</span> <span class="fl">0.0142</span>, <span class="at">label =</span> <span class="st">"100% Technical</span><span class="sc">\n</span><span class="st">(naive integer result,</span><span class="sc">\n</span><span class="st">all budgets)"</span>),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> risk, <span class="at">y =</span> ret), <span class="at">color =</span> <span class="st">"#eb6834"</span>, <span class="at">size =</span> <span class="dv">3</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">risk =</span> <span class="fl">0.138</span>, <span class="at">ret =</span> <span class="fl">0.0142</span>, <span class="at">label =</span> <span class="st">"100% Technical</span><span class="sc">\n</span><span class="st">(naive result, all budgets)"</span>),</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> risk, <span class="at">y =</span> ret, <span class="at">label =</span> label), <span class="at">hjust =</span> <span class="sc">-</span><span class="fl">0.05</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> <span class="st">"#eb6834"</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">labels =</span> <span class="fu">percent_format</span>()) <span class="sc">+</span></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">percent_format</span>()) <span class="sc">+</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"The efficient frontier vs. the naive integer-optimal result"</span>,</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Continuous mean-variance frontier (blue) vs. actual $2K/$10K/$50K portfolios (orange)"</span>,</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Monthly risk (volatility)"</span>, <span class="at">y =</span> <span class="st">"Monthly expected return"</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="report_files/figure-html/frontier-chart-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="report_files/figure-html/frontier-chart-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
-<p>The naive integer-constrained optimizer, used at all three budget levels, sits at the extreme right edge of the frontier: full Technical concentration, 1.42% return at 13.8% risk. The frontier shows the same 0.0142 return is only achievable this way, but far better risk/return tradeoffs exist elsewhere on the curve. At the frontier’s minimum-risk point, achievable volatility drops to roughly 5.9%, meaningfully below Technical’s 13.8% and below every other single theme’s own volatility.</p>
+<p>The naive integer-constrained optimizer, used at all three budget levels, sits at the extreme right edge of the frontier: full Technical concentration, 1.42% return at 13.8% risk. The frontier shows the same 0.0142 return is only achievable this way, but far better risk/return tradeoffs exist elsewhere on the curve.</p>
+<section id="the-minimum-risk-diversified-portfolio" class="level3">
+<h3 class="anchored" data-anchor-id="the-minimum-risk-diversified-portfolio">The minimum-risk diversified portfolio</h3>
+<p>At the frontier’s absolute minimum-risk point, no target return imposed, the optimizer allocates:</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Theme =</span> <span class="fu">c</span>(<span class="st">"Licensed"</span>, <span class="st">"Miscellaneous"</span>, <span class="st">"Pre-school"</span>, <span class="st">"Action/Adventure"</span>, <span class="st">"Model making"</span>, <span class="st">"Modern day"</span>, <span class="st">"Technical"</span>),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Weight =</span> <span class="fu">c</span>(<span class="fl">0.462</span>, <span class="fl">0.209</span>, <span class="fl">0.201</span>, <span class="fl">0.129</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(Weight <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Weight =</span> <span class="fu">percent</span>(Weight, <span class="at">accuracy =</span> <span class="fl">0.1</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Theme"</span>, <span class="st">"Portfolio weight"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Theme</th>
+<th style="text-align: left;">Portfolio weight</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Licensed</td>
+<td style="text-align: left;">46.2%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Miscellaneous</td>
+<td style="text-align: left;">20.9%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Pre-school</td>
+<td style="text-align: left;">20.1%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Action/Adventure</td>
+<td style="text-align: left;">12.9%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>This portfolio achieves 5.84% monthly volatility, below every single theme’s own individual volatility, including Licensed alone (6.5%). Three themes, including Technical, the highest-return theme in isolation, receive zero allocation: their risk contribution outweighs their return benefit once genuine covariance with the rest of the portfolio is accounted for. This is the concrete answer the naive integer-constrained portfolios (all-Technical, at every budget) fail to reach.</p>
+</section>
 </section>
 <section id="recommended-portfolios-by-budget" class="level2">
 <h2 class="anchored" data-anchor-id="recommended-portfolios-by-budget">Recommended portfolios by budget</h2>
@@ -213,6 +411,12 @@ ul.task-list li input[type="checkbox"] {
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>portfolio_2k <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Price =</span> <span class="fu">dollar</span>(Price), <span class="at">mean_return =</span> <span class="fu">percent</span>(mean_return, <span class="at">accuracy =</span> <span class="fl">0.01</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Set"</span>, <span class="st">"Theme"</span>, <span class="st">"Price"</span>, <span class="st">"Expected monthly return"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
@@ -243,6 +447,12 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>portfolio_10k <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Price =</span> <span class="fu">dollar</span>(Price), <span class="at">mean_return =</span> <span class="fu">percent</span>(mean_return, <span class="at">accuracy =</span> <span class="fl">0.01</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Set"</span>, <span class="st">"Theme"</span>, <span class="st">"Price"</span>, <span class="st">"Expected monthly return"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead>
@@ -285,6 +495,12 @@ ul.task-list li input[type="checkbox"] {
 </div>
 <div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
 <div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>portfolio_50k <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Price =</span> <span class="fu">dollar</span>(Price), <span class="at">mean_return =</span> <span class="fu">percent</span>(mean_return, <span class="at">accuracy =</span> <span class="fl">0.01</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Set"</span>, <span class="st">"Theme"</span>, <span class="st">"Price"</span>, <span class="st">"Expected monthly return"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
@@ -420,12 +636,9 @@ ul.task-list li input[type="checkbox"] {
 <li><strong>Individual sets inherit their theme’s expected return</strong>, since 61 months of data cannot support reliable per-set return estimates for 6,072 individual sets. This is a real approximation, not a limitation unique to this analysis. It mirrors how thin-trading asset classes are typically handled in practice.</li>
 <li><strong>Prices are the most recently observed price per set (up to June 2023)</strong>, not live market prices. This is historical, not real-time, portfolio guidance.</li>
 <li><strong>The frontier is built at the theme level (7 assets)</strong>, not the individual-set level (6,072 assets), because a reliable 6,072x6,072 covariance matrix is not estimable from 61 months of data. The integer-constrained portfolios operate at the set level; the frontier operates at the theme level. This is why the two are compared rather than unified into a single unconstrained-vs-constrained model.</li>
-<li><strong>Correlations are measured on regression-smoothed indices</strong>, which may understate true month-to-month volatility even where the GLM correction doesn’t cleanly apply. This is a genuine, acknowledged tension in this analysis.</li>
+<li><strong>The minimum-risk portfolio weights above were computed as a separate, one-off analysis</strong> and are not yet part of the regenerable <code>04_optimize.R</code> pipeline; a future revision should fold this computation into that script so the whole report regenerates from a single reproducible source.</li>
+<li></li>
 </ul>
-</section>
-<section id="data-and-code" class="level2">
-<h2 class="anchored" data-anchor-id="data-and-code">Data and code</h2>
-<p>Full analysis code, raw data, and reproducibility instructions (via <code>renv</code>) are available at <a href="https://github.com/Watersingman50/lego-portfolio-optimization">github.com/Watersingman50/lego-portfolio-optimization</a>.</p>
 </section>
 
 </main>

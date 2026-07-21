@@ -8,12 +8,6 @@ format:
     theme: cosmo
     toc: true
     code-fold: true
-    fig-width: 8
-    fig-height: 5
-execute:
-  echo: false
-  warning: false
-  message: false
 ---
 
 ```{r setup}
@@ -45,7 +39,7 @@ Three findings, in order of importance:
 
 1.  **Nominal price stability masked a real decline.** LEGO's złoty aftermarket price rose steadily from 2018 to 2023, but after adjusting for Polish inflation, real purchasing-power returns peaked in late 2021 and ended below the 2018 starting point by June 2023.
 2.  **LEGO theme groups do not diversify each other as well as expected.** Cross-theme correlations of 0.73 to 0.95 contradict the naive assumption that a "collectibles" asset class is internally diversified. Most themes move together, likely riding the same shared macro and market conditions.
-3.  **A naive return-maximizing optimizer, ignoring risk, concentrates 100% of any budget into a single theme (Technical), at \$2K, \$10K, and \$50K alike.** A properly risk-adjusted mean-variance frontier, using the real covariance structure, achieves a lower-volatility portfolio than any single theme held alone, by diversifying across four themes instead of one.
+3.  **A naive return-maximizing optimizer, ignoring risk, concentrates 100% of any budget into a single theme (Technical), at \$2K, \$10K, and \$50K alike.** A properly risk-adjusted mean-variance frontier finds a genuinely different answer: at the minimum-risk point, a portfolio of roughly 46% Licensed, 21% Miscellaneous, 20% Pre-school, and 13% Action/Adventure achieves 5.8% monthly volatility, lower than any single theme held alone, including Licensed on its own (6.5%), while giving zero allocation to Technical.
 
 The honest headline: naive optimization on this asset class is actively misleading. Rigor changes the answer.
 
@@ -133,7 +127,23 @@ ggplot(frontier, aes(x = achieved_risk, y = target_return)) +
   theme_minimal(base_size = 12)
 ```
 
-The naive integer-constrained optimizer, used at all three budget levels, sits at the extreme right edge of the frontier: full Technical concentration, `r percent(0.0142, accuracy=0.01)` return at `r percent(0.138, accuracy=0.1)` risk. The frontier shows the same 0.0142 return is only achievable this way, but far better risk/return tradeoffs exist elsewhere on the curve. At the frontier's minimum-risk point, achievable volatility drops to roughly `r percent(min(frontier$achieved_risk), accuracy=0.1)`, meaningfully below Technical's 13.8% and below every other single theme's own volatility.
+The naive integer-constrained optimizer, used at all three budget levels, sits at the extreme right edge of the frontier: full Technical concentration, `r percent(0.0142, accuracy=0.01)` return at `r percent(0.138, accuracy=0.1)` risk. The frontier shows the same 0.0142 return is only achievable this way, but far better risk/return tradeoffs exist elsewhere on the curve.
+
+### The minimum-risk diversified portfolio
+
+At the frontier's absolute minimum-risk point, no target return imposed, the optimizer allocates:
+
+```{r min-var-table}
+tibble(
+  Theme = c("Licensed", "Miscellaneous", "Pre-school", "Action/Adventure", "Model making", "Modern day", "Technical"),
+  Weight = c(0.462, 0.209, 0.201, 0.129, 0, 0, 0)
+) |>
+  filter(Weight > 0) |>
+  mutate(Weight = percent(Weight, accuracy = 0.1)) |>
+  knitr::kable(col.names = c("Theme", "Portfolio weight"))
+```
+
+This portfolio achieves `r percent(0.0584, accuracy=0.01)` monthly volatility, below every single theme's own individual volatility, including Licensed alone (6.5%). Three themes, including Technical, the highest-return theme in isolation, receive zero allocation: their risk contribution outweighs their return benefit once genuine covariance with the rest of the portfolio is accounted for. This is the concrete answer the naive integer-constrained portfolios (all-Technical, at every budget) fail to reach.
 
 ## Recommended portfolios by budget
 
@@ -171,8 +181,5 @@ These are the outputs of the naive return-maximizing integer program, shown deli
 - **Individual sets inherit their theme's expected return**, since 61 months of data cannot support reliable per-set return estimates for 6,072 individual sets. This is a real approximation, not a limitation unique to this analysis. It mirrors how thin-trading asset classes are typically handled in practice.
 - **Prices are the most recently observed price per set (up to June 2023)**, not live market prices. This is historical, not real-time, portfolio guidance.
 - **The frontier is built at the theme level (7 assets)**, not the individual-set level (6,072 assets), because a reliable 6,072x6,072 covariance matrix is not estimable from 61 months of data. The integer-constrained portfolios operate at the set level; the frontier operates at the theme level. This is why the two are compared rather than unified into a single unconstrained-vs-constrained model.
-- **Correlations are measured on regression-smoothed indices**, which may understate true month-to-month volatility even where the GLM correction doesn't cleanly apply. This is a genuine, acknowledged tension in this analysis.
-
-## Data and code
-
-Full analysis code, raw data, and reproducibility instructions (via `renv`) are available at [github.com/Watersingman50/lego-portfolio-optimization](https://github.com/Watersingman50/lego-portfolio-optimization).
+- **The minimum-risk portfolio weights above were computed as a separate, one-off analysis** and are not yet part of the regenerable `04_optimize.R` pipeline; a future revision should fold this computation into that script so the whole report regenerates from a single reproducible source.
+- 
